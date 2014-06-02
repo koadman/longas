@@ -1,0 +1,247 @@
+PhyloSift
+
+PhyloSift is a suite of software tools to conduct phylogenetic
+analysis of genomes and metagenomes.
+
+Using a reference database of protein and RNA sequences, PhyloSift can scan
+new sequences against that database for homologs and identify the
+phylogenetic relationship of the new sequence to the database
+sequences. During this procedure, high quality alignments of codon and
+amino acid sequence are generated.
+
+Website : http://phylosift.wordpress.com/
+Twitter : @PhyloSift
+
+User support forum: https://groups.google.com/d/forum/phylosift
+Our google group is a place to ask questions, request functionalities, 
+get help if you're stuck, and generally interact with our development 
+team at UC Davis.
+
+Please report software errors and bugs as issues in our github tracker:
+https://github.com/gjospin/PhyloSift/issues
+All known bugs are documented in the issue tracker and marked with their
+resolution status.
+
+== Quick Start for the Impatient ==
+
+Download PhyloSift from here:
+http://edhar.genomecenter.ucdavis.edu/~koadman/phylosift/phylosift_latest.tar.bz2
+
+Unpack with `tar xvjf phylosift_latest.tar.bz2`, then change into the new directory and run:
+
+`bin/phylosift all --output=results sequences.fasta`
+
+Or using compressed paired FastQ data from an Illumina instrument:
+
+`bin/phylosift all --output=results --paired read_1.gz read_2.gz`
+
+Results will be stored in a new directory called "results".
+
+See `results/sequences.fasta.html` for a visual summary of the sequence data.
+Run `javaws results/sequences.fasta.jnlp` to browse a phylogeny with branches thickened by 
+relative abundance in the sample.
+
+== Detailed installation instructions ==
+
+The easy way :
+
+Download the tarball archive from
+
+   http://edhar.genomecenter.ucdavis.edu/~koadman/phylosift/phylosift_latest.tar.bz2
+
+Navigate to the directory where you downloaded the software and run :
+
+   `tar -xvf phylosift_latest.tar.bz2`
+
+PhyloSift is ready for use. Refer to the Usage section.
+
+The hard way (installing from the development repository) :
+
+Download and install Git for your system. 
+
+   http://git-scm.com/
+
+For debian/ubuntu systems, run the following command
+
+   `sudo apt-get install git`
+
+To check out the PhyloSift development repository, run the following
+command :
+
+   `git clone git://github.com/gjospin/PhyloSift.git`
+
+It may also be necessary to install several support packages,
+including BioPerl, Bio::Phylo, and others. BioPerl offers bioperl-live from github,
+we suggest installing other dependencies using cpan.
+
+== Dependency software ==
+
+PhyloSift depends on a number of external software modules, including BioPerl, Bio::Phylo, LWP::Simple, and others. 
+We have attempted to package these dependencies with phylosift but every operating system is unique and there may be system-specific requirements that are not met. If you see messages from the perl interpreter suggesting that a module is missing, we suggest using the cpan system to install the missing dependency.
+
+To run build_marker mode, the installation of taxit and its dependent python modules (e.g. SQLAlchemy) is required. 
+taxit is available from: https://github.com/fhcrc/taxtastic
+
+== Updating PhyloSift ==
+
+If running PhyloSift from a packaged release (i.e., you chose the
+"easy way"), simply download the newest tarball.
+
+If running PhyloSift from the development repository, run the
+following command :
+
+   git update
+
+== Usage ==
+
+PhyloSift currently accepts input data in the following file formats:
+
+* FASTA
+* paired FASTA (specify paired data by using the --paired  flag)
+* interleaved paired FASTA (specify paired data by using the --paired  flag)
+* FASTQ (same as FASTA but with quality scores; this file type is the standard output from Illumina platforms)
+* interleaved FASTQ (same as FASTA but with quality scores)
+* .gz (any of the above file types compressed using gzip)
+* .bz2 (any of the above file types compressed using bzip2)
+
+PhyloSift can be executed by running the following command:
+
+$ phylosift <Mode> <options> <sequence_file>
+
+$ phylosift <Mode> <options> --paired <sequence_file_1> <sequence_file_2>
+
+   sequence_file_1 and _2 must contain paired sequences
+
+
+Creating a PhyloSift marker :
+
+Example 1: `phylosift build_marker -f --alignment=test.aln --reps_pd=0.01`
+
+Example 2: `phylosift build_marker -f  --alignment=test.aln --taxonmap=test.taxonmap`
+
+The new marker will be added directly to the phylosift marker database.
+
+NOTE : This step does not automatically add the new marker to the
+search databases. You will need to run `phylosift index` after building a marker.
+
+If a marker with the same name already exists, the marker build process
+will be halted unless the -f or --force option is used.
+
+The marker name will be the same as the alignment given minus the
+trailing suffix. If the user wants to build a marker from the file
+<test.aln>, the marker name will be <test>
+
+
+== Index the search databases ==
+
+This step is run automatically when markers are downloaded but if you
+add new markers, you will need to run this step manually.
+
+`phylosift index`
+
+
+== Modes ==
+
+
+      commands: list the application's commands
+          help: display a command's help screen
+
+         align: align homologous sequences identified by 'search'
+           all: run all steps for phylogenetic analysis of genomic or metagenomic sequence data
+     benchmark: measure taxonomic prediction accuracy on a simulated dataset
+  build_marker: add a new marker the reference database based on a sequence alignment
+      dbupdate: update the phylosift database with new genomic data
+         index: index a phylosift database after changes have been made
+          name: Replaces phylosift's own sequence IDs with the original IDs found in the input file header
+         place: place aligned reads onto a reference phylogeny
+        search: search input sequence for homology to reference gene database
+      simulate: simulate sequencing from a metagenomic sample
+     summarize: translate a collection of phylogenetic placements into a taxonomic summary
+  test_lineage: conduct a statistical test (a Bayes factor) for the presence of a particular lineage in a sample
+                    
+== Requirements ==
+
+PhyloSift requires a 64-bit operating system. PhyloSift will NOT work
+on a 32bit operating system. PhyloSift depends on a great many other
+open source software packages. The precompiled version linked above
+bundles most of the dependencies into a single downloadable package.
+
+== Results ==
+
+Results are saved to the path specified with the --output option.
+If no path is given, the default location for results is `PS_temp/<filename>/`.
+
+*  blastDir : All files related to the search step.  
+
+     *  *.candidate.aa.*      Fasta format of the candidate sequences in
+                        Protein space for each marker 
+
+     *  *.candidate.ffn.*  Fasta format of the candidate sequences in DNA
+                        space for each marker (option activated)
+
+*  alignDir : All files related to the alignment and masking steps.
+
+     *  *.newCandidate.*   Fasta file of the candidate sequences 
+                           copied from the blastDir
+     *  *.fasta            hmmer3 generated alignment for the 
+                           candidate sequences in fasta format
+     *  *.codon.*.fasta    reverse-translated alignment of DNA
+     *  *.unmasked 	       The unmasked sequence of homologs that aligned
+                           successfully and passed all filter thresholds 
+
+*  treeDir : Files containing placements of sequences onto reference
+              phylogenetic trees
+
+     *  *.jplace            Phylogenetic placements of the aligned sequences
+     *  *.codon.*.jplace    Phylogenetic placements for codon alignments
+
+*  taxasummary.txt        Probability mass over taxa present in the sample,
+                          tab-delimited text
+
+		Column 1 -- NCBI Taxon ID
+		Column 2 -- Taxonomic rank (genus, species, phylum, etc)
+		Column 3 -- Name
+		Column 4 -- Read/sequence probability sum placed at this taxon
+                  The values in this column can be normalized to sum to 1,
+                  the result will be a rank-abundance distribution
+
+== SUPPORT AND DOCUMENTATION ==
+
+After installing, you can find documentation for this module with the
+perldoc command.
+
+    perldoc Phylosift::Phylosift
+
+Bugs and other apparent problems with the software can be reported as
+issues in our github issue tracker :
+
+   https://github.com/gjospin/PhyloSift/issues
+
+== LICENSE AND COPYRIGHT ==
+
+Copyright (C) 2011 Aaron Darling and Guillaume Jospin
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of either: the GNU General Public License as published
+by the Free Software Foundation.
+
+
+== 3rd PARTY SOFTWARE ==
+
+PhyloSift is distributed with several open source components that were developed by other groups.
+These components are (c) their respective developers and are redistributed with PhyloSift to provide ease-of-use.
+
+Please see the following web sites for licensing details and source code for these other components:
+* pplacer -- http://matsen.fhcrc.org/pplacer/
+* HMMER 3 -- http://hmmer.janelia.org/
+* LAST -- http://last.cbrc.jp
+* pda -- http://www.cibiv.at/software/pda/
+* FastTree -- http://www.microbesonline.org/fasttree/
+* infernal -- http://infernal.janelia.org/
+
+The above list is not exhaustive.
+
+== CONTACT INFORMATION ==
+
+Please direct correspondence to aarondarling (at) uc davis (dot) edu
+Or on twitter to @PhyloSift

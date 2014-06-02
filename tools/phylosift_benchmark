@@ -1,0 +1,56 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use File::Basename;
+use Cwd;
+
+my $phylosift = $ARGV[0];
+my $report_path = $ARGV[1];
+my $marker_url = $ARGV[2];
+
+use FindBin qw($Bin);
+BEGIN { push(@INC, "$Bin/../lib") }
+BEGIN { push(@INC, "$ARGV[0]/lib") }
+use Phylosift::Phylosift;
+use Carp;
+use Phylosift::Utilities qw(debug);
+use Phylosift::Benchmark;
+
+die "Usage: phylosift_benchmark <path to phylosift> <path to report output> [marker url]\n" if(@ARGV <2);
+
+my $ps = new Phylosift::Phylosift();
+Phylosift::Phylosift::read_phylosift_config(self=>$ps);
+Phylosift::Utilities::data_checks(self=>$ps);
+
+my @benchmark_data = (
+["A simulated 454 dataset with 10 organisms","http://edhar.genomecenter.ucdavis.edu/~koadman/phylosift/accuracy/grinder_454.fa"],
+["A simulated illumina dataset with 10 organisms","http://edhar.genomecenter.ucdavis.edu/~koadman/phylosift/accuracy/grinder_illumina.fa"], 
+);
+
+# pull down the marker DB and index it -- don't count this in runtime
+system("export PATH=\"$phylosift/bin:\$PATH\" ; $phylosift/bin/phylosift index --config benchmarkrc");
+
+my %times;
+for(my $bI=0; $bI<@benchmark_data; $bI++){
+	my $url = $benchmark_data[$bI][1];
+	my $seqname = $1 if $url =~ /.+\/(.+?)$/;
+	print STDERR "Downloading $url to $seqname\n";
+	`wget $url`;
+
+	# run through the command-line just to test the interface as well
+	my $url_arg = "";
+	$url_arg = " --marker_url=$marker_url " if defined($marker_url);
+	print STDOUT "Running $phylosift/bin/phylosift all $url_arg -f $seqname\n";
+	Phylosift::Utilities::start_timer(name=>$seqname);
+	system("export PATH=\"$phylosift/bin:\$PATH\" ; $phylosift/bin/phylosift all --simple --debug --config benchmarkrc $url_arg -f $seqname");
+	my $seconds = Phylosift::Utilities::end_timer(name=>$seqname);
+
+	# now benchmark
+	my $summary = cwd()."/PS_temp/$seqname/sequence_taxa.txt";
+	Phylosift::Benchmark::run_benchmark(reads_file=>$seqname, output_path=>$report_path, summary_file=>$summary, pr_curve=>$report_path."prcurve");
+	
+	$times{$seqname} = $seconds;
+}
+
+# create a seconds elapsed report
+Phylosift::Benchmark::report_timing(self=>$ps, data=>\%times,output_path=> $report_path);
