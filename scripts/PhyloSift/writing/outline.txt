@@ -1,0 +1,82 @@
+#
+# tell it like a story
+# 
+
+- Intro
+  - Evolution: the joint processes of reproduction with mutation and natural selection acting on mutations
+  - Molecular evolution has left an indelible mark on microbes
+  - Metagenomics, has for the first time offered a glimpse of the genetic structure of uncultured microbial communities
+  - Metagenomics, in its current form, destroys some of the most valuable information present in a sample: genetic linkage.
+  - Cells are shredded to get the DNA -- mixes DNA among many cells
+  - Chromosomes are sheared down in to fragments palatable for sequencing instruments. Usually less than 1Kbp (though sometimes 10-20kbp). 
+  - Single cell genomics can resolve this to some extent
+  - Computational methods very helpful
+  - Evolution provides a primary signal for read classification
+    - Evolution of nucleotides/amino acids
+    - Evolution of gene content
+
+  - Previous work
+    - whole-metagenome binning
+      - composition classifiers
+      - identity/homology classifiers
+    - community composition without binning
+      - AMPHORA, MLTreeMap, others?
+      - MetaPHlan
+
+  - In this work we employ phylogenetic models of nucleotide and amino acid substitution to perform metagenomic binning and community composition analysis
+  - We evaluate the new method and compare it to previous approaches using simulated datasets
+
+- Design and Implementation
+  - Core workflow similar to AMPHORA, MLTreeMap
+  - Marker gene set expanded to include 38 Bact+Arch markers, mtDNA, euk, 16s, 18s, viral fams
+  - Details of each step
+    - Process sequence (reads or assembly) to identify similarity to marker genes
+      - LAST, bowtie2
+    - Generate high quality alignments
+      - reverse translation to DNA when possible
+    - Place reads on a phylogenetic reference tree
+    - Compute summaries of read placements
+      - taxonomic summary
+      - other summaries
+    - Or compare among samples
+      - stuff A, B, and C
+
+== Figure 1: Client Workflow ==
+
+  - Database update workflow
+    - pull any new genomes from NCBI/EBI/JGI/otherI
+    - run core workflow to identify marker homologs (--besthit --isolate)
+    - assigned unique ID, linking to taxon ID etc.
+    - build tree (FastTree)
+    - etc, etc
+  - Taxonomy reconciliation
+
+== Figure 2: DB Update Workflow ==
+
+- Results
+  - Simulated datasets
+    - How they were generated
+    - Building PhyloSift DBs without test datasets
+  - Precision, recall, and F1
+  - Relationship between F1 and neighbor taxon density
+  - Compute time
+
+== Figure 3: Test set generation showing tree, phylo scope exclusion ==
+
+== Figure 4: Accuracy on simulated data ==
+
+== Figure 5: RMSD community reconstruction or PCA result ==
+
+  - Application to a real dataset (which one? human gut?)
+    - correspondence with 16s on this dataset?
+    - any other interesting features?
+
+== Figure 6: Krona on a human gut sample ==
+
+- Discussion
+  - Fundamental limits to computational methods -- resolving linkage among polymorphisms in a population
+  - Advantages to the approach taken by PhyloSift
+  - Disadvantages
+    - many
+  - Future work
+
