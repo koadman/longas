@@ -2,8 +2,17 @@
 paste("Processing ",commandArgs(TRUE))
 abc<-read.table(commandArgs(TRUE)[1],header=T,sep="\t")
 
+ks.test(abc$Count[abc$Recombinant1==0&abc$Recombinant2==0], abc$Max.with.r1[abc$Recombinant1==1], alternative="greater")
+ks.test(abc$Count[abc$Recombinant1==0&abc$Recombinant2==0], abc$Max.with_r2[abc$Recombinant2==1], alternative="greater")
+
 library("vioplot")
 pdf("output/recombinants.pdf",width=6.5,height=3.5)
 par(cex=0.8)
 vioplot(abc$Count[abc$Recombinant1==0&abc$Recombinant2==0],abc$Count[abc$Recombinant1==1|abc$Recombinant2==1],abc$Max.with.r1[abc$Recombinant1==1],abc$Max.with_r2[abc$Recombinant2==1],names=c("Nonrecombinant","Recombinant","Left progenitors","Right progenitors"),col="gray")
+#vioplot(abc$Count[abc$Recombinant1==0&abc$Recombinant2==0],abc$Count[abc$Recombinant1==1|abc$Recombinant2==1],names=c("Nonrecombinant","Recombinant"),col="gray")
+title("In-vitro recombination in full length templates", ylab="Size of random barcode clusters")
 dev.off()
+
+summary(abc$Max.with.r1[abc$Recombinant1==1] / abc$Count[abc$Recombinant1==1])
+summary(abc$Max.with_r2[abc$Recombinant2==1] / abc$Count[abc$Recombinant2==1])
+

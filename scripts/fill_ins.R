@@ -16,3 +16,6 @@ par(cex=0.8)
 vioplot(logtrans(r1p$V2/2),logtrans(r2p$V2/2),logratios,col="gray",names=c("log LEnd+Int reads","log REnd+Int reads", "ratio"))
 title("Number of fill-in reads per full length template",ylab="log units")
 dev.off()
+
+summary(r1p$V2+r2p$V2)
+summary(r1p$V2[r1p$V2!=0&r2p$V2!=0]/r2p$V2[r1p$V2!=0&r2p$V2!=0])
