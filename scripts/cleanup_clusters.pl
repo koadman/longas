@@ -19,6 +19,11 @@ while(my $line = <MPILE>){
 	my @d = split(/\t/, $line);
 	$contigs{$d[0]}{cov} = 0 unless defined $contigs{$d[0]}{cov};
 	$contigs{$d[0]}{cov} += $d[3];
+	unless (defined($contigs{$d[0]}{sitecov})){
+		$contigs{$d[0]}{sitecov} = [] ;
+		push(@{$contigs{$d[0]}{sitecov}}, 0);
+	}
+	$contigs{$d[0]}{sitecov}->[$d[1]] = $d[3];
 	$contigs{$d[0]}{sites} = 0 unless defined $contigs{$d[0]}{sites};
 	$contigs{$d[0]}{sites} ++;
 }
@@ -106,32 +111,43 @@ foreach my $name(keys(%faseqs)){
 #	next unless $contigs{$name}{sites} > 1250;
 	$faseqs{$name} = reverse($faseqs{$name}) if $contigs{$name}{revcomp};
 	$faseqs{$name} =~ tr/ABCDGHMNRSTUVWXYabcdghmnrstuvwxy/TVGHCDKNYSAABWXRtvghcdknysaabwxr/ if $contigs{$name}{revcomp};
-	$keep_fa{$name} = $faseqs{$name};
 	$fqseqs{$name}{seq} = reverse($fqseqs{$name}{seq}) if $contigs{$name}{revcomp};
 	$fqseqs{$name}{seq} =~ tr/ABCDGHMNRSTUVWXYabcdghmnrstuvwxy/TVGHCDKNYSAABWXRtvghcdknysaabwxr/ if $contigs{$name}{revcomp};
 	$fqseqs{$name}{quals} = reverse($fqseqs{$name}{quals}) if $contigs{$name}{revcomp};
+	@{$contigs{$name}{sitecov}} = reverse(@{$contigs{$name}{sitecov}}) if $contigs{$name}{revcomp};
 	my $match_index = String::Approx::aindex("AGAGTTTGATCMTGGCTCAG", [ "I2","D2","S25%" ], $faseqs{$name});
 	if($match_index >= 0){
 		$faseqs{$name} = substr($faseqs{$name}, $match_index);
 		$fqseqs{$name}{seq} = substr($fqseqs{$name}{seq}, $match_index);
 		$fqseqs{$name}{quals} = substr($fqseqs{$name}{quals}, $match_index);
-#		print STDERR "trimming start at $match_index\n";
+		splice(@{$contigs{$name}{sitecov}}, 0, $match_index);
+		print STDERR "trimming start at $match_index\n";
 	}
 	my $rev_annealing = "TGYACACACCGCCCGTC";
 	$match_index = String::Approx::aindex($rev_annealing, [ "I2","D2","S25%" ], $faseqs{$name});
+	my @subs = String::Approx::asubstitute($rev_annealing, "donkeynuts", [ "I2","D2","S25%" ], $faseqs{$name});
 	if($match_index >= 0){
-		$faseqs{$name} = substr($faseqs{$name}, 0, $match_index + length($rev_annealing));
-		$fqseqs{$name}{seq} = substr($fqseqs{$name}{seq}, 0, $match_index + length($rev_annealing));
-		$fqseqs{$name}{quals} = substr($fqseqs{$name}{quals}, 0, $match_index + length($rev_annealing));
-#		print STDERR "trimming end at $match_index\n";
+#		print STDERR "matched position $match_index of\n$faseqs{$name}\n asub $subs[0]\n";
+		
+		$faseqs{$name} = substr($faseqs{$name}, 0, $match_index + 2);
+		$fqseqs{$name}{seq} = substr($fqseqs{$name}{seq}, 0, $match_index + 2);
+		$fqseqs{$name}{quals} = substr($fqseqs{$name}{quals}, 0, $match_index + 2);
+		splice(@{$contigs{$name}{sitecov}}, $match_index + 2);
 	}
+	$keep_fa{$name} = $faseqs{$name};
 }
 
 open(FACLEAN, ">$DNAME/$BNAME.contigs.cleaned.fasta");
 open(FQCLEAN, ">$DNAME/$BNAME.contigs.cleaned.fastq");
+open(DEPTH, ">$DNAME/$BNAME.contigs.cleaned.depth");
 foreach my $name(keys(%keep_fa)){
 	print FACLEAN ">$BNAME:$name\n$keep_fa{$name}\n";
 	print FQCLEAN "@"."$BNAME:$name\n$fqseqs{$name}{seq}\n+\n$fqseqs{$name}{quals}\n";
+	# zero-fill any missing depth of coverage entries
+	for(my $i=0; $i<@{$contigs{$name}{sitecov}}; $i++){
+		$contigs{$name}{sitecov}->[$i] = 0 unless defined $contigs{$name}{sitecov}->[$i];
+	}
+	print DEPTH ">$BNAME:$name\n".join("\t",@{$contigs{$name}{sitecov}})."\n";
 }
 close FACLEAN;
 close FQCLEAN;
