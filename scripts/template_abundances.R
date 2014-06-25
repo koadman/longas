@@ -15,4 +15,22 @@ dev.off()
 
 summary(abc$Max.with.r1[abc$Recombinant1==1] / abc$Count[abc$Recombinant1==1])
 summary(abc$Max.with_r2[abc$Recombinant2==1] / abc$Count[abc$Recombinant2==1])
+print("both")
+summary(c(abc$Max.with.r1[abc$Recombinant1==1] / abc$Count[abc$Recombinant1==1], abc$Max.with_r2[abc$Recombinant2==1] / abc$Count[abc$Recombinant2==1]))
+
+print("total recombinant clusters")
+sum(abc$Recombinant1==1|abc$Recombinant2==1)
+print("total non-recombinant clusters")
+sum(abc$Recombinant1==0&abc$Recombinant2==0)
+print("total recombinant reads")
+sum(abc$Count[abc$Recombinant1==1|abc$Recombinant2==1])
+print("total non-recombinant reads")
+nrcounts <- abc$Count[abc$Recombinant1==0&abc$Recombinant2==0]
+sum(nrcounts)
+
+print("mean")
+mean(nrcounts)
+
+print("relative standard error")
+sd(nrcounts) / mean(nrcounts)
 
