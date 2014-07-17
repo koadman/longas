@@ -1,19 +1,14 @@
 #!/bin/bash
 
-MUSCLE="~/software/muscle/muscle"
-FASTTREE="~/git/PhyloSift/bin/FastTree"
-PDA="~/git/PhyloSift/bin/pda"
-
-# make the multiple alignments
-$MUSCLE -in data/full_length/long_take_1_2_1000bp.fasta -out output/full_length/long_take_1_2_1000bp_aln.fa
-$MUSCLE -in data/full_length/V4_take_1_2_1000bp.fasta -out output/full_length/V4_take_1_2_1000bp_aln.fa
-bzip2 output/full_length/long_take_1_2_1000bp_aln.fa
-bzip2 output/full_length/V4_take_1_2_1000bp_aln.fa
+FASTTREE="scripts/PhyloSift/bin/FastTree"
+PDA="scripts/PhyloSift/bin/pda"
 
 # build trees from the alignments
-bzcat output/full_length/long_take_1_2_1000bp_aln.fa.bz2 | $FASTTREE -nt -gtr > output/full_length/long_take_1_2_1000bp.tre
-bzcat output/full_length/V4_take_1_2_1000bp_aln.fa.bz2 | $FASTTREE -nt -gtr > output/full_length/V4_take_1_2_1000bp.tre
+cat data/full_length/all_clean_try5.V4.full.aligned.fasta | $FASTTREE -nt -gtr > output/full_length/long_cmalign.tre
+cat data/full_length/all_clean_try5.V4.aligned.fasta | $FASTTREE -nt -gtr > output/full_length/V4_cmalign.tre
+cat data/full_length/all_clean_try5.V14.aligned.fasta | $FASTTREE -nt -gtr > output/full_length/V14_cmalign.tre
 
 # calculate the phylogenetic diversity in the tree (just summing branch length of all taxa)
-$PDA -k 999999999 output/full_length/long_take_1_2_1000bp.tre
-$PDA -k 999999999 output/full_length/V4_take_1_2_1000bp.tre
+$PDA -k 999999999 output/full_length/long_cmalign.tre
+$PDA -k 999999999 output/full_length/V4_cmalign.tre
+$PDA -k 999999999 output/full_length/V14_cmalign.tre
